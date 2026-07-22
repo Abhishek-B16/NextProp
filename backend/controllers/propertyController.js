@@ -1,6 +1,11 @@
 const Property = require('../models/Property');
+const {
+  uploadImageToImageKit,
+  deleteImageFromImageKit,
+  deleteMultipleImagesFromImageKit
+} = require('../utils/imagekit');
 
-// @desc    Create a new property listing
+// @desc    Create a new property listing with optional ImageKit file uploads
 // @route   POST /api/properties
 // @access  Private (Owner / Admin)
 const createProperty = async (req, res) => {
@@ -22,11 +27,52 @@ const createProperty = async (req, res) => {
       bathrooms,
       area,
       amenities,
-      images,
       status
     } = req.body;
 
-    // Create property attached to authenticated user (owner)
+    let propertyImages = [];
+
+    // 1. Process files uploaded via Multer to ImageKit
+    if (req.files && req.files.length > 0) {
+      console.log(`📸 Uploading ${req.files.length} images to ImageKit...`);
+      const uploadPromises = req.files.map((file) =>
+        uploadImageToImageKit(file.buffer, file.originalname, 'nestora/properties')
+      );
+      propertyImages = await Promise.all(uploadPromises);
+      console.log(`✅ Uploaded ${propertyImages.length} images to ImageKit successfully.`);
+    } 
+    // 2. Fallback if images array passed as JSON body
+    else if (req.body.images) {
+      try {
+        const rawImages = typeof req.body.images === 'string' 
+          ? JSON.parse(req.body.images) 
+          : req.body.images;
+
+        if (Array.isArray(rawImages)) {
+          propertyImages = rawImages.map((img) =>
+            typeof img === 'string' ? { url: img, fileId: 'manual_entry' } : img
+          );
+        }
+      } catch (err) {
+        console.warn('⚠️ JSON parsing fallback for images array failed:', err.message);
+      }
+    }
+
+    // Parse amenities if passed as stringified JSON or comma-separated list
+    let parsedAmenities = [];
+    if (amenities) {
+      if (Array.isArray(amenities)) {
+        parsedAmenities = amenities;
+      } else if (typeof amenities === 'string') {
+        try {
+          parsedAmenities = JSON.parse(amenities);
+        } catch (e) {
+          parsedAmenities = amenities.split(',').map((item) => item.trim());
+        }
+      }
+    }
+
+    // Create property in MongoDB
     const property = await Property.create({
       title,
       description,
@@ -41,8 +87,8 @@ const createProperty = async (req, res) => {
       bedrooms: bedrooms || 0,
       bathrooms: bathrooms || 0,
       area,
-      amenities: amenities || [],
-      images: images || [],
+      amenities: parsedAmenities,
+      images: propertyImages,
       status: status || 'available',
       owner: req.user._id
     });
@@ -98,7 +144,7 @@ const getAllProperties = async (req, res) => {
       queryObj.propertyType = propertyType;
     }
 
-    // Filter by Status (default filter if not requested otherwise)
+    // Filter by Status
     if (status) {
       queryObj.status = status;
     }
@@ -185,7 +231,7 @@ const getPropertyById = async (req, res) => {
   }
 };
 
-// @desc    Update property listing
+// @desc    Update property listing (support image upload, replacement, and deletion)
 // @route   PUT /api/properties/:id
 // @access  Private (Owner of property / Admin)
 const updateProperty = async (req, res) => {
@@ -212,8 +258,71 @@ const updateProperty = async (req, res) => {
       });
     }
 
-    // Update fields
-    property = await Property.findByIdAndUpdate(id, req.body, {
+    let updatedImages = [...property.images];
+    const shouldReplaceImages =
+      req.body.replaceImages === 'true' || req.body.replaceImages === true;
+
+    // Handle new file uploads
+    if (req.files && req.files.length > 0) {
+      console.log(`📸 Uploading ${req.files.length} new images for update to ImageKit...`);
+      const uploadPromises = req.files.map((file) =>
+        uploadImageToImageKit(file.buffer, file.originalname, 'nestora/properties')
+      );
+      const newImages = await Promise.all(uploadPromises);
+
+      if (shouldReplaceImages) {
+        // Delete all old images from ImageKit
+        const oldFileIds = property.images.map((img) => img.fileId).filter(Boolean);
+        if (oldFileIds.length > 0) {
+          console.log(`🗑️ Replacing existing images... Deleting ${oldFileIds.length} old images from ImageKit`);
+          await deleteMultipleImagesFromImageKit(oldFileIds);
+        }
+        updatedImages = newImages;
+      } else {
+        // Append new images to existing list
+        updatedImages = [...updatedImages, ...newImages];
+      }
+    }
+
+    // Handle specific fileId deletions if provided in req.body.deleteFileIds
+    if (req.body.deleteFileIds) {
+      let fileIdsToDelete = [];
+      if (Array.isArray(req.body.deleteFileIds)) {
+        fileIdsToDelete = req.body.deleteFileIds;
+      } else if (typeof req.body.deleteFileIds === 'string') {
+        try {
+          fileIdsToDelete = JSON.parse(req.body.deleteFileIds);
+        } catch (e) {
+          fileIdsToDelete = req.body.deleteFileIds.split(',').map((s) => s.trim());
+        }
+      }
+
+      if (fileIdsToDelete.length > 0) {
+        await deleteMultipleImagesFromImageKit(fileIdsToDelete);
+        updatedImages = updatedImages.filter((img) => !fileIdsToDelete.includes(img.fileId));
+      }
+    }
+
+    // Prepare update data
+    const updateData = { ...req.body };
+    delete updateData.replaceImages;
+    delete updateData.deleteFileIds;
+
+    // Handle parsing amenities if updated
+    if (updateData.amenities) {
+      if (typeof updateData.amenities === 'string') {
+        try {
+          updateData.amenities = JSON.parse(updateData.amenities);
+        } catch (e) {
+          updateData.amenities = updateData.amenities.split(',').map((item) => item.trim());
+        }
+      }
+    }
+
+    updateData.images = updatedImages;
+
+    // Update property in DB
+    property = await Property.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true
     }).populate('owner', 'name email phone avatar role');
@@ -234,7 +343,7 @@ const updateProperty = async (req, res) => {
   }
 };
 
-// @desc    Delete property listing
+// @desc    Delete property listing and purge associated images from ImageKit
 // @route   DELETE /api/properties/:id
 // @access  Private (Owner of property / Admin)
 const deleteProperty = async (req, res) => {
@@ -261,13 +370,22 @@ const deleteProperty = async (req, res) => {
       });
     }
 
+    // Extract fileIds and delete from ImageKit
+    const fileIdsToDelete = property.images.map((img) => img.fileId).filter(Boolean);
+
+    if (fileIdsToDelete.length > 0) {
+      console.log(`🗑️ Deleting ${fileIdsToDelete.length} associated images from ImageKit...`);
+      await deleteMultipleImagesFromImageKit(fileIdsToDelete);
+    }
+
+    // Delete property document from MongoDB
     await property.deleteOne();
 
     console.log(`🗑️ SUCCESS: Property ${id} deleted by User ${req.user._id}`);
 
     return res.status(200).json({
       status: 'success',
-      message: 'Property listing deleted successfully'
+      message: 'Property listing and associated images deleted successfully'
     });
   } catch (error) {
     console.error('❌ Delete Property Error:', error.message);

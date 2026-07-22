@@ -77,10 +77,12 @@ const propertySchema = new mongoose.Schema(
       type: [String],
       default: []
     },
-    images: {
-      type: [String],
-      default: []
-    },
+    images: [
+      {
+        url: { type: String, required: true },
+        fileId: { type: String, required: true }
+      }
+    ],
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
