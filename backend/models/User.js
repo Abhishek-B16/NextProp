@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema(
     avatar: {
       type: String,
       default: ''
+    },
+    isVerifiedOwner: {
+      type: Boolean,
+      default: false
     }
   },
   {

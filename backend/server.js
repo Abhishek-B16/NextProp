@@ -12,6 +12,7 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const { initSocket } = require('./utils/socket');
 
 dotenv.config();
@@ -53,6 +54,7 @@ app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/admin', adminRoutes);
 
 // API Health Check Route
 app.get('/api/health', (req, res) => {
