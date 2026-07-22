@@ -109,7 +109,7 @@ export default function Navbar() {
 
           {user?.role === ROLES.ADMIN && (
             <Link
-              to="/dashboard"
+              to="/admin/dashboard"
               className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 font-semibold transition-colors bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20"
             >
               <ShieldCheck className="w-4 h-4" />

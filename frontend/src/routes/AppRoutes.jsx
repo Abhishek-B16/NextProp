@@ -17,6 +17,7 @@ const EditProperty = lazy(() => import('../pages/EditProperty'));
 const WishlistPage = lazy(() => import('../pages/WishlistPage'));
 const BookingsPage = lazy(() => import('../pages/BookingsPage'));
 const Dashboard = lazy(() => import('../pages/Dashboard'));
+const AdminDashboard = lazy(() => import('../pages/AdminDashboard'));
 const ChatPage = lazy(() => import('../pages/ChatPage'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 
@@ -44,6 +45,16 @@ export default function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={[ROLES.OWNER, ROLES.ADMIN]}>
                 <EditProperty />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Route for Admin */}
+          <Route
+            path="admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />
