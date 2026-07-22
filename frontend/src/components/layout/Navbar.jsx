@@ -84,6 +84,16 @@ export default function Navbar() {
                 <Calendar className="w-4 h-4" />
                 <span>Bookings</span>
               </Link>
+
+              <Link
+                to="/chat"
+                className={`flex items-center gap-1.5 transition-colors ${
+                  isActive('/chat') ? 'text-brand-400 font-semibold' : 'hover:text-brand-400'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Chat</span>
+              </Link>
             </>
           )}
 

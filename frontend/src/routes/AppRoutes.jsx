@@ -17,6 +17,7 @@ const EditProperty = lazy(() => import('../pages/EditProperty'));
 const WishlistPage = lazy(() => import('../pages/WishlistPage'));
 const BookingsPage = lazy(() => import('../pages/BookingsPage'));
 const Dashboard = lazy(() => import('../pages/Dashboard'));
+const ChatPage = lazy(() => import('../pages/ChatPage'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 
 export default function AppRoutes() {
@@ -62,6 +63,24 @@ export default function AppRoutes() {
             element={
               <ProtectedRoute>
                 <BookingsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="chat"
+            element={
+              <ProtectedRoute>
+                <ChatPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="chat/:id"
+            element={
+              <ProtectedRoute>
+                <ChatPage />
               </ProtectedRoute>
             }
           />

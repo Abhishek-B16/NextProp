@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { getPropertyByIdApi } from '../services/propertyService';
 import { getWishlistApi, addToWishlistApi, removeFromWishlistApi } from '../services/wishlistService';
+import { createOrGetConversationApi } from '../services/chatService';
 import { useAuth } from '../context/AuthContext';
 import ImageGallery from '../components/property/ImageGallery';
 import PropertyMap from '../components/property/PropertyMap';
@@ -108,6 +109,24 @@ export default function PropertyDetails() {
       return;
     }
     setBookingModalOpen(true);
+  };
+
+  const handleStartChat = async () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: { pathname: `/properties/${id}` } } });
+      return;
+    }
+    const ownerId = owner?._id || owner;
+    if (!ownerId || ownerId === user?._id) return;
+
+    try {
+      const data = await createOrGetConversationApi(ownerId);
+      if (data && data.data) {
+        navigate(`/chat/${data.data._id}`);
+      }
+    } catch (err) {
+      console.error('Failed to initiate chat:', err);
+    }
   };
 
   if (loading) {
@@ -324,6 +343,17 @@ export default function PropertyDetails() {
                 <Calendar className="w-4 h-4" />
                 <span>Book a Visit Request</span>
               </button>
+
+              {owner && owner._id !== user?._id && (
+                <button
+                  type="button"
+                  onClick={handleStartChat}
+                  className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-brand-400 font-bold text-xs flex items-center justify-center gap-2 transition-all"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Chat with Owner</span>
+                </button>
+              )}
             </div>
 
             {/* Owner Details Section */}
