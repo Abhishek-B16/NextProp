@@ -14,10 +14,10 @@ export default function Footer() {
               <div className="w-9 h-9 bg-brand-500/15 border border-brand-500/30 rounded-xl flex items-center justify-center text-brand-400">
                 <Building2 className="w-5 h-5" />
               </div>
-              <span>NextProp</span>
+              <span>NextProp.in</span>
             </Link>
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-              NextProp is a production-ready MERN property rental and sales platform. Connect directly with verified property owners, schedule visits, and save your dream homes.
+              NextProp.in is a production-ready MERN property rental and sales platform. Connect directly with verified property owners, schedule visits, and save your dream homes.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a href="#" className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-brand-400 hover:border-brand-500/30 transition-all">
@@ -80,7 +80,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>&copy; {new Date().getFullYear()} NextProp MERN Real Estate Platform. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} NextProp.in MERN Real Estate Platform. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-slate-400 transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-slate-400 transition-colors">Terms of Service</a>

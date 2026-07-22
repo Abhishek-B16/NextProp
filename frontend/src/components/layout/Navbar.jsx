@@ -38,7 +38,7 @@ export default function Navbar() {
           <div className="w-9 h-9 bg-brand-500/15 border border-brand-500/30 rounded-xl flex items-center justify-center text-brand-400 group-hover:scale-105 transition-transform">
             <Building2 className="w-5 h-5" />
           </div>
-          <span>NextProp</span>
+          <span>NextProp.in</span>
         </Link>
 
         {/* Desktop Navigation Links */}

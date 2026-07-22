@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Filter, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, X, Sparkles, Building2 } from 'lucide-react';
+import { Filter, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, X, Sparkles, Building2, LayoutGrid, Map } from 'lucide-react';
 import { getPropertiesApi } from '../services/propertyService';
 import { getWishlistApi, addToWishlistApi, removeFromWishlistApi } from '../services/wishlistService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import PropertyFilter from '../components/property/PropertyFilter';
 import PropertyGrid from '../components/property/PropertyGrid';
+import PropertiesMapView from '../components/property/PropertiesMapView';
 
 export default function Properties() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,6 +21,7 @@ export default function Properties() {
   const [loading, setLoading] = useState(true);
   const [savedPropertyIds, setSavedPropertyIds] = useState([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [viewMode, setViewMode] = useState('grid');
 
   // Extract initial filters from searchParams
   const filters = {
@@ -241,33 +243,70 @@ export default function Properties() {
               <span className="text-slate-100 font-bold">{pagination.total}</span> listings
             </div>
 
-            {/* Sorting Dropdown */}
-            <div className="flex items-center gap-2.5">
-              <span className="text-slate-400 font-semibold flex items-center gap-1">
-                <ArrowUpDown className="w-3.5 h-3.5 text-brand-400" />
-                Sort By:
-              </span>
-              <select
-                value={filters.sort}
-                onChange={handleSortChange}
-                className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 font-semibold focus:outline-none focus:border-brand-500/80 cursor-pointer"
-              >
-                <option value="latest">Newest First</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="oldest">Oldest First</option>
-              </select>
+            {/* Sorting Dropdown & View Mode Toggle */}
+            <div className="flex items-center gap-3">
+              {/* View Mode Toggle Buttons */}
+              <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                    viewMode === 'grid'
+                      ? 'bg-brand-500 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Grid View"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Grid</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('map')}
+                  className={`p-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                    viewMode === 'map'
+                      ? 'bg-brand-500 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Interactive Map View"
+                >
+                  <Map className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Map View</span>
+                </button>
+              </div>
+
+              {/* Sorting Dropdown */}
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400 font-semibold hidden sm:flex items-center gap-1">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-brand-400" />
+                  Sort:
+                </span>
+                <select
+                  value={filters.sort}
+                  onChange={handleSortChange}
+                  className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 font-semibold focus:outline-none focus:border-brand-500/80 cursor-pointer"
+                >
+                  <option value="latest">Newest First</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="oldest">Oldest First</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Property Cards Grid */}
-          <PropertyGrid
-            properties={properties}
-            loading={loading}
-            savedPropertyIds={savedPropertyIds}
-            onToggleWishlist={handleToggleWishlist}
-            emptyMessage="No properties found matching your criteria. Try adjusting your search or filters."
-          />
+          {/* Conditional View: Grid or Map */}
+          {viewMode === 'map' ? (
+            <PropertiesMapView properties={properties} />
+          ) : (
+            <PropertyGrid
+              properties={properties}
+              loading={loading}
+              savedPropertyIds={savedPropertyIds}
+              onToggleWishlist={handleToggleWishlist}
+              emptyMessage="No properties found matching your criteria. Try adjusting your search or filters."
+            />
+          )}
 
           {/* Pagination Controls */}
           {pagination.pages > 1 && (
