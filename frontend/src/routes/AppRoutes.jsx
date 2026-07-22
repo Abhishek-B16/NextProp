@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import ProtectedRoute from './ProtectedRoute';
+import PublicRoute from './PublicRoute';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { ROLES } from '../constants/roles';
 
@@ -67,8 +68,22 @@ export default function AppRoutes() {
         </Route>
 
         {/* Public Authentication Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
+        />
 
         {/* Catch-all 404 Route */}
         <Route path="*" element={<NotFound />} />
