@@ -95,6 +95,17 @@ const propertySchema = new mongoose.Schema(
         message: 'Status must be available, rented, sold, or pending'
       },
       default: 'available'
+    },
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: [0, 'Rating cannot be negative'],
+      max: [5, 'Rating cannot exceed 5']
+    },
+    numOfReviews: {
+      type: Number,
+      default: 0,
+      min: [0, 'Number of reviews cannot be negative']
     }
   },
   {
