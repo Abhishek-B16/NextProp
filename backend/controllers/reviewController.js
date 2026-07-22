@@ -1,6 +1,7 @@
 const Review = require('../models/Review');
 const Property = require('../models/Property');
 const Booking = require('../models/Booking');
+const { sendNotification } = require('../utils/notificationHelper');
 
 // @desc    Create a new review for a property
 // @route   POST /api/properties/:propertyId/reviews or POST /api/reviews
@@ -70,6 +71,16 @@ const createReview = async (req, res) => {
     });
 
     await review.populate('user', 'name avatar role');
+
+    // Notify Property Owner about new review
+    await sendNotification({
+      recipient: property.owner,
+      sender: req.user._id,
+      type: 'new_review',
+      title: 'New Property Review',
+      message: `${req.user.name} left a ${numericRating}-star review on "${property.title}"`,
+      data: { propertyId: property._id, reviewId: review._id, rating: numericRating }
+    });
 
     console.log(`💬 Review submitted for Property ${propertyId} by Customer ${req.user._id} (Rating: ${numericRating})`);
 

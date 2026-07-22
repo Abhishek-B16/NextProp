@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking');
 const Property = require('../models/Property');
+const { sendNotification } = require('../utils/notificationHelper');
 
 // @desc    Create a new property visit booking request
 // @route   POST /api/bookings
@@ -78,6 +79,16 @@ const createBooking = async (req, res) => {
       { path: 'customer', select: 'name email phone avatar role' },
       { path: 'owner', select: 'name email phone avatar role' }
     ]);
+
+    // Send Notification to Property Owner
+    await sendNotification({
+      recipient: property.owner,
+      sender: req.user._id,
+      type: 'booking_update',
+      title: 'New Visit Booking Request',
+      message: `${req.user.name} requested a visit for "${property.title}" on ${bookingDate.toDateString()}`,
+      data: { bookingId: booking._id, propertyId: property._id }
+    });
 
     console.log(`📅 Booking Request Created -> ID: ${booking._id} for Property ${propertyId}`);
 
@@ -242,6 +253,19 @@ const updateBookingStatus = async (req, res) => {
       { path: 'customer', select: 'name email phone avatar role' },
       { path: 'owner', select: 'name email phone avatar role' }
     ]);
+
+    // Send Notification to recipient (other party in booking)
+    const notificationRecipient = isOwner ? booking.customer._id : booking.owner._id;
+    const propertyTitle = booking.property ? booking.property.title : 'Property';
+
+    await sendNotification({
+      recipient: notificationRecipient,
+      sender: req.user._id,
+      type: 'booking_update',
+      title: `Booking Request ${status.toUpperCase()}`,
+      message: `Your visit booking for "${propertyTitle}" has been marked as ${status}.`,
+      data: { bookingId: booking._id, propertyId: booking.property ? booking.property._id : null, status }
+    });
 
     console.log(`🔄 Booking ${id} status updated to '${status}' by User ${req.user._id}`);
 
