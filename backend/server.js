@@ -7,6 +7,7 @@ const connectDB = require('./db');
 const authRoutes = require('./routes/authRoutes');
 const propertyRoutes = require('./routes/propertyRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ connectDB();
 app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // API Health Check Route
 app.get('/api/health', (req, res) => {
