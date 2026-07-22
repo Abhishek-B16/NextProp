@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const connectDB = require('./db');
 const authRoutes = require('./routes/authRoutes');
 const propertyRoutes = require('./routes/propertyRoutes');
+const wishlistRoutes = require('./routes/wishlistRoutes');
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ connectDB();
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
+app.use('/api/wishlist', wishlistRoutes);
 
 // API Health Check Route
 app.get('/api/health', (req, res) => {
