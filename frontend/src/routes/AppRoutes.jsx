@@ -13,6 +13,7 @@ const Register = lazy(() => import('../pages/Register'));
 const Properties = lazy(() => import('../pages/Properties'));
 const PropertyDetails = lazy(() => import('../pages/PropertyDetails'));
 const AddProperty = lazy(() => import('../pages/AddProperty'));
+const EditProperty = lazy(() => import('../pages/EditProperty'));
 const WishlistPage = lazy(() => import('../pages/WishlistPage'));
 const BookingsPage = lazy(() => import('../pages/BookingsPage'));
 const Dashboard = lazy(() => import('../pages/Dashboard'));
@@ -34,6 +35,14 @@ export default function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={[ROLES.OWNER, ROLES.ADMIN]}>
                 <AddProperty />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="properties/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.OWNER, ROLES.ADMIN]}>
+                <EditProperty />
               </ProtectedRoute>
             }
           />

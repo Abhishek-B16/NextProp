@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Building2, Upload, AlertCircle, ArrowRight, Loader2, CheckCircle2, ChevronLeft } from 'lucide-react';
-import { createPropertyApi } from '../services/propertyService';
+import { getPropertyByIdApi, updatePropertyApi } from '../services/propertyService';
 import { PROPERTY_TYPES, PROPERTY_PURPOSES } from '../constants/roles';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const AVAILABLE_AMENITIES = [
   'WiFi',
@@ -17,9 +18,11 @@ const AVAILABLE_AMENITIES = [
   'Furnished'
 ];
 
-export default function AddProperty() {
+export default function EditProperty() {
+  const { id } = useParams();
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -33,13 +36,50 @@ export default function AddProperty() {
     bedrooms: '2',
     bathrooms: '2',
     area: '',
+    status: 'available',
     amenities: []
   });
 
-  const [imageFiles, setImageFiles] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImageFiles, setNewImageFiles] = useState([]);
+  const [newImagePreviews, setNewImagePreviews] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const fetchProperty = async () => {
+      setLoading(true);
+      try {
+        const data = await getPropertyByIdApi(id);
+        if (data && data.data) {
+          const prop = data.data;
+          setFormData({
+            title: prop.title || '',
+            description: prop.description || '',
+            purpose: prop.purpose || 'Rent',
+            propertyType: prop.propertyType || 'Apartment',
+            price: prop.price || '',
+            address: prop.address || '',
+            city: prop.city || '',
+            state: prop.state || '',
+            pincode: prop.pincode || '',
+            bedrooms: prop.bedrooms || '2',
+            bathrooms: prop.bathrooms || '2',
+            area: prop.area || '',
+            status: prop.status || 'available',
+            amenities: prop.amenities || []
+          });
+          setExistingImages(prop.images || []);
+        }
+      } catch (err) {
+        setErrorMessage('Failed to fetch property details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperty();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,39 +101,14 @@ export default function AddProperty() {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length + imageFiles.length > 10) {
-      setErrorMessage('You can upload a maximum of 10 images');
-      return;
-    }
-
-    setImageFiles((prev) => [...prev, ...files]);
-
+    setNewImageFiles((prev) => [...prev, ...files]);
     const newPreviews = files.map((file) => URL.createObjectURL(file));
-    setImagePreviews((prev) => [...prev, ...newPreviews]);
-    setErrorMessage('');
-  };
-
-  const handleRemoveImage = (index) => {
-    setImageFiles((prev) => prev.filter((_, i) => i !== index));
-    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    setNewImagePreviews((prev) => [...prev, ...newPreviews]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
-
-    if (!formData.title.trim()) {
-      setErrorMessage('Please provide a property title');
-      return;
-    }
-    if (!formData.price || Number(formData.price) <= 0) {
-      setErrorMessage('Please enter a valid price');
-      return;
-    }
-    if (!formData.city.trim() || !formData.state.trim()) {
-      setErrorMessage('City and State are required');
-      return;
-    }
 
     setIsSubmitting(true);
 
@@ -107,31 +122,35 @@ export default function AddProperty() {
         }
       });
 
-      imageFiles.forEach((file) => {
+      newImageFiles.forEach((file) => {
         dataPayload.append('images', file);
       });
 
-      await createPropertyApi(dataPayload);
+      await updatePropertyApi(id, dataPayload);
       navigate('/dashboard?tab=properties');
     } catch (err) {
-      console.error('Property creation error:', err);
-      setErrorMessage(err.errorMessage || 'Failed to create property listing');
+      console.error('Property update error:', err);
+      setErrorMessage(err.errorMessage || 'Failed to update property listing');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (loading) {
+    return <LoadingSpinner fullScreen message="Loading property details..." />;
+  }
+
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-12">
       <div className="flex items-center justify-between border-b border-slate-800 pb-4">
         <div>
-          <Link to="/dashboard" className="text-xs text-slate-400 hover:text-brand-400 flex items-center gap-1 mb-1">
+          <Link to="/dashboard?tab=properties" className="text-xs text-slate-400 hover:text-brand-400 flex items-center gap-1 mb-1">
             <ChevronLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
+            <span>Back to My Properties</span>
           </Link>
           <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
             <Building2 className="w-6 h-6 text-brand-400" />
-            <span>Post New Property Listing</span>
+            <span>Edit Property Listing</span>
           </h1>
         </div>
       </div>
@@ -145,22 +164,38 @@ export default function AddProperty() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-          {/* Title & Description */}
+          {/* Title, Status & Description */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">1. Basic Details</h3>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Property Title *</label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                disabled={isSubmitting}
-                placeholder="Luxury 3BHK Apartment with Sea View"
-                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80"
-                required
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Property Title *</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  required
+                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Listing Status</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80 cursor-pointer"
+                >
+                  <option value="available">Available</option>
+                  <option value="rented">Rented</option>
+                  <option value="sold">Sold</option>
+                  <option value="pending">Pending Review</option>
+                </select>
+              </div>
             </div>
 
             <div>
@@ -171,7 +206,6 @@ export default function AddProperty() {
                 value={formData.description}
                 onChange={handleChange}
                 disabled={isSubmitting}
-                placeholder="Detailed description of features, nearby landmarks, and amenities..."
                 className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80 resize-none"
               ></textarea>
             </div>
@@ -218,7 +252,6 @@ export default function AddProperty() {
                   value={formData.price}
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  placeholder="e.g. 45000"
                   min="0"
                   required
                   className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80"
@@ -227,23 +260,9 @@ export default function AddProperty() {
             </div>
           </div>
 
-          {/* Location Details */}
+          {/* Location */}
           <div className="space-y-4 pt-4 border-t border-slate-800/80">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">3. Location</h3>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Street Address</label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                disabled={isSubmitting}
-                placeholder="Building Name, Street, Area"
-                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80"
-              />
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">City *</label>
@@ -253,7 +272,6 @@ export default function AddProperty() {
                   value={formData.city}
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  placeholder="Mumbai"
                   required
                   className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80"
                 />
@@ -267,7 +285,6 @@ export default function AddProperty() {
                   value={formData.state}
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  placeholder="Maharashtra"
                   required
                   className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80"
                 />
@@ -281,54 +298,6 @@ export default function AddProperty() {
                   value={formData.pincode}
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  placeholder="400001"
-                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Specifications (Beds, Baths, Area) */}
-          <div className="space-y-4 pt-4 border-t border-slate-800/80">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">4. Specifications</h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Bedrooms</label>
-                <input
-                  type="number"
-                  name="bedrooms"
-                  value={formData.bedrooms}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
-                  min="0"
-                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Bathrooms</label>
-                <input
-                  type="number"
-                  name="bathrooms"
-                  value={formData.bathrooms}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
-                  min="0"
-                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Super Area (sq ft)</label>
-                <input
-                  type="number"
-                  name="area"
-                  value={formData.area}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
-                  placeholder="1200"
-                  min="0"
                   className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80"
                 />
               </div>
@@ -337,7 +306,7 @@ export default function AddProperty() {
 
           {/* Amenities Grid */}
           <div className="space-y-3 pt-4 border-t border-slate-800/80">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">5. Amenities</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">4. Amenities</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {AVAILABLE_AMENITIES.map((amenity) => {
                 const isSelected = formData.amenities.includes(amenity);
@@ -360,14 +329,13 @@ export default function AddProperty() {
             </div>
           </div>
 
-          {/* Image Uploads */}
+          {/* Add New Images */}
           <div className="space-y-3 pt-4 border-t border-slate-800/80">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">6. Upload Property Images</h3>
-
-            <div className="border-2 border-dashed border-slate-800 hover:border-brand-500/60 p-6 rounded-2xl text-center bg-slate-900/50 transition-colors">
-              <Upload className="w-8 h-8 text-brand-400 mx-auto mb-2" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">5. Add Additional Images</h3>
+            <div className="border-2 border-dashed border-slate-800 hover:border-brand-500/60 p-4 rounded-2xl text-center bg-slate-900/50">
+              <Upload className="w-6 h-6 text-brand-400 mx-auto mb-1" />
               <label className="cursor-pointer text-xs font-bold text-brand-400 hover:text-brand-300">
-                <span>Choose Image Files</span>
+                <span>Select New Image Files</span>
                 <input
                   type="file"
                   multiple
@@ -377,22 +345,13 @@ export default function AddProperty() {
                   className="hidden"
                 />
               </label>
-              <p className="text-[10px] text-slate-500 mt-1">PNG, JPG, WEBP up to 5MB per image (Max 10 files)</p>
             </div>
 
-            {/* Previews */}
-            {imagePreviews.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 pt-2">
-                {imagePreviews.map((preview, idx) => (
-                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-slate-800 group">
-                    <img src={preview} alt="upload preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(idx)}
-                      className="absolute top-1 right-1 p-1 bg-slate-950/80 rounded-full text-rose-400 hover:text-rose-300"
-                    >
-                      &times;
-                    </button>
+            {newImagePreviews.length > 0 && (
+              <div className="grid grid-cols-4 gap-2 pt-2">
+                {newImagePreviews.map((preview, idx) => (
+                  <div key={idx} className="aspect-square rounded-xl overflow-hidden border border-slate-800">
+                    <img src={preview} alt="new preview" className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
@@ -408,13 +367,10 @@ export default function AddProperty() {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Uploading & Creating Listing...</span>
+                <span>Updating Property Listing...</span>
               </>
             ) : (
-              <>
-                <span>Publish Property Listing</span>
-                <ArrowRight className="w-4 h-4" />
-              </>
+              <span>Save & Update Listing</span>
             )}
           </button>
         </form>
