@@ -4,6 +4,7 @@ import { Filter, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, X, S
 import { getPropertiesApi } from '../services/propertyService';
 import { getWishlistApi, addToWishlistApi, removeFromWishlistApi } from '../services/wishlistService';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import PropertyFilter from '../components/property/PropertyFilter';
 import PropertyGrid from '../components/property/PropertyGrid';
 
@@ -11,6 +12,7 @@ export default function Properties() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
 
   // State
   const [properties, setProperties] = useState([]);
@@ -152,11 +154,14 @@ export default function Properties() {
     try {
       if (isAlreadySaved) {
         await removeFromWishlistApi(propertyId);
+        showToast('Removed from wishlist', 'info');
       } else {
         await addToWishlistApi(propertyId);
+        showToast('Added to saved wishlist!', 'success');
       }
     } catch (err) {
       console.error('Wishlist toggle error:', err);
+      showToast('Failed to update wishlist', 'error');
       // Revert optimistic update on failure
       setSavedPropertyIds((prev) =>
         isAlreadySaved ? [...prev, propertyId] : prev.filter((id) => id !== propertyId)

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Bed, Bath, Maximize2, Star, ShieldCheck, Heart } from 'lucide-react';
+import { formatPrice, getImageUrl, optimizeImageKitUrl } from '../../utils/formatters';
 
 export default function PropertyCard({ property, isSaved = false, onToggleWishlist }) {
   if (!property) return null;
@@ -22,26 +23,15 @@ export default function PropertyCard({ property, isSaved = false, onToggleWishli
     owner
   } = property;
 
-  // Extract first image URL
-  const firstImage = Array.isArray(images) && images.length > 0
-    ? (typeof images[0] === 'string' ? images[0] : images[0]?.url)
-    : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80';
-
-  const formatPrice = (val) => {
-    if (!val) return '₹ 0';
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(val);
-  };
+  const rawImage = getImageUrl(images[0]);
+  const optimizedImage = optimizeImageKitUrl(rawImage, 800, 80);
 
   return (
     <div className="glass-card rounded-2xl overflow-hidden group flex flex-col h-full border border-slate-800/80 hover:border-slate-700 hover:shadow-2xl hover:shadow-brand-500/5 transition-all duration-300">
       {/* Image Banner */}
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
         <img
-          src={firstImage}
+          src={optimizedImage}
           alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
@@ -88,6 +78,7 @@ export default function PropertyCard({ property, isSaved = false, onToggleWishli
                   ? 'bg-rose-500/20 border-rose-500/40 text-rose-500 scale-105'
                   : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-rose-400 hover:bg-slate-900'
               }`}
+              aria-label={isSaved ? 'Remove from Wishlist' : 'Save to Wishlist'}
               title={isSaved ? 'Remove from Wishlist' : 'Save to Wishlist'}
             >
               <Heart className={`w-4 h-4 ${isSaved ? 'fill-rose-500' : ''}`} />
