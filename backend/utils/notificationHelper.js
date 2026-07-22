@@ -1,7 +1,8 @@
 const Notification = require('../models/Notification');
+const { emitToUser } = require('./socket');
 
 /**
- * Utility helper to create and store system/event notifications
+ * Utility helper to create and store system/event notifications & emit real-time push
  * @param {Object} options
  * @param {string} options.recipient - Target User ObjectId
  * @param {string} [options.sender] - Triggering User ObjectId (optional)
@@ -26,7 +27,13 @@ const sendNotification = async ({ recipient, sender = null, type, title, message
       data
     });
 
-    console.log(`🔔 Notification Created [${type}] for User ${recipient}: "${title}"`);
+    // Populate sender info for real-time notification payload
+    await notification.populate('sender', 'name avatar role');
+
+    // Emit real-time notification event via Socket.io
+    emitToUser(recipient, 'new_notification', notification);
+
+    console.log(`🔔 Notification Created & Emitted [${type}] for User ${recipient}: "${title}"`);
     return notification;
   } catch (error) {
     console.error('❌ Failed to create notification:', error.message);

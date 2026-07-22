@@ -2,6 +2,7 @@ const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const { sendNotification } = require('../utils/notificationHelper');
+const { emitToUser, emitToConversation } = require('../utils/socket');
 
 // @desc    Get existing 1-on-1 conversation or create a new one
 // @route   POST /api/chat/conversations
@@ -188,6 +189,10 @@ const sendMessage = async (req, res) => {
       { path: 'receiver', select: 'name avatar role' }
     ]);
 
+    // Emit real-time Socket.io message event to receiver & conversation room
+    emitToUser(actualReceiverId, 'new_message', message);
+    emitToConversation(conversation._id, 'new_message', message);
+
     // 4. Trigger Notification for receiver
     const previewText = text.length > 40 ? `${text.substring(0, 40)}...` : text;
     await sendNotification({
@@ -245,7 +250,7 @@ const getConversationMessages = async (req, res) => {
     }
 
     // Mark all unread messages received by this user as read
-    await Message.updateMany(
+    const updateResult = await Message.updateMany(
       {
         conversation: conversationId,
         receiver: req.user._id,
@@ -256,6 +261,20 @@ const getConversationMessages = async (req, res) => {
         readAt: new Date()
       }
     );
+
+    // If any messages were marked read, emit real-time read receipt to the sender(s)
+    if (updateResult.modifiedCount > 0) {
+      const otherParticipant = conversation.participants.find(
+        (p) => p.toString() !== req.user._id.toString()
+      );
+      if (otherParticipant) {
+        emitToUser(otherParticipant, 'messages_read', {
+          conversationId,
+          readBy: req.user._id,
+          readAt: new Date()
+        });
+      }
+    }
 
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
