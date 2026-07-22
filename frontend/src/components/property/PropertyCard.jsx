@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Bed, Bath, Maximize2, Star, ShieldCheck, Heart } from 'lucide-react';
 
-export default function PropertyCard({ property }) {
+export default function PropertyCard({ property, isSaved = false, onToggleWishlist }) {
   if (!property) return null;
 
   const {
@@ -67,12 +67,33 @@ export default function PropertyCard({ property }) {
           </span>
         </div>
 
-        {/* Verified Owner Indicator */}
-        {owner?.isVerifiedOwner && (
-          <div className="absolute top-3 right-3 bg-amber-500/20 backdrop-blur-md border border-amber-500/40 text-amber-300 p-1.5 rounded-lg" title="Verified Owner">
-            <ShieldCheck className="w-4 h-4" />
-          </div>
-        )}
+        {/* Verified Owner & Wishlist Heart Buttons */}
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          {owner?.isVerifiedOwner && (
+            <div className="bg-amber-500/20 backdrop-blur-md border border-amber-500/40 text-amber-300 p-1.5 rounded-lg" title="Verified Owner">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+          )}
+
+          {onToggleWishlist && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleWishlist(_id);
+              }}
+              className={`p-2 rounded-xl backdrop-blur-md border transition-all duration-200 ${
+                isSaved
+                  ? 'bg-rose-500/20 border-rose-500/40 text-rose-500 scale-105'
+                  : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-rose-400 hover:bg-slate-900'
+              }`}
+              title={isSaved ? 'Remove from Wishlist' : 'Save to Wishlist'}
+            >
+              <Heart className={`w-4 h-4 ${isSaved ? 'fill-rose-500' : ''}`} />
+            </button>
+          )}
+        </div>
 
         {/* Price Overlay */}
         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">

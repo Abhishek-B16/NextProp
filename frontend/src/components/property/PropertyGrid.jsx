@@ -1,7 +1,13 @@
 import React from 'react';
 import PropertyCard from './PropertyCard';
 
-export default function PropertyGrid({ properties = [], loading = false, emptyMessage = 'No properties found matching your criteria.' }) {
+export default function PropertyGrid({
+  properties = [],
+  loading = false,
+  emptyMessage = 'No properties found matching your criteria.',
+  savedPropertyIds = [],
+  onToggleWishlist
+}) {
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -30,7 +36,12 @@ export default function PropertyGrid({ properties = [], loading = false, emptyMe
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {properties.map((property) => (
-        <PropertyCard key={property._id} property={property} />
+        <PropertyCard
+          key={property._id}
+          property={property}
+          isSaved={savedPropertyIds.includes(property._id)}
+          onToggleWishlist={onToggleWishlist}
+        />
       ))}
     </div>
   );
