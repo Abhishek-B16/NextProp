@@ -102,8 +102,26 @@ const propertySchema = new mongoose.Schema(
   }
 );
 
-// Index for efficient search & filtering
-propertySchema.index({ city: 1, purpose: 1, propertyType: 1, price: 1, status: 1 });
+// Optimized Indexes for Fast Multi-Criteria Search & Sorting
+propertySchema.index(
+  {
+    title: 'text',
+    description: 'text',
+    city: 'text',
+    state: 'text',
+    address: 'text'
+  },
+  {
+    name: 'PropertyTextSearchIndex',
+    weights: { title: 5, city: 3, state: 3, address: 2, description: 1 }
+  }
+);
+
+propertySchema.index({ purpose: 1, propertyType: 1, city: 1, state: 1, price: 1, status: 1 });
+propertySchema.index({ bedrooms: 1, bathrooms: 1, price: 1 });
+propertySchema.index({ createdAt: -1 });
+propertySchema.index({ price: 1 });
+propertySchema.index({ price: -1 });
 
 const Property = mongoose.model('Property', propertySchema);
 

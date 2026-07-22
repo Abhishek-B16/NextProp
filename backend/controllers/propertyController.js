@@ -109,80 +109,129 @@ const createProperty = async (req, res) => {
   }
 };
 
-// @desc    Get all property listings with search, filter & pagination
+// @desc    Get property listings with advanced search, multi-field filtering, sorting & pagination
 // @route   GET /api/properties
 // @access  Public
 const getAllProperties = async (req, res) => {
   try {
     const {
+      keyword,
+      search,
       city,
+      state,
       purpose,
       propertyType,
+      bedrooms,
+      bathrooms,
       status,
       minPrice,
       maxPrice,
-      search,
+      sort,
       page = 1,
-      limit = 10,
-      sort = '-createdAt'
+      limit = 10
     } = req.query;
 
     const queryObj = {};
 
-    // Filter by City
-    if (city) {
-      queryObj.city = { $regex: city, $options: 'i' };
-    }
-
-    // Filter by Purpose (Rent/Sell)
-    if (purpose) {
-      queryObj.purpose = purpose;
-    }
-
-    // Filter by Property Type
-    if (propertyType) {
-      queryObj.propertyType = propertyType;
-    }
-
-    // Filter by Status
-    if (status) {
-      queryObj.status = status;
-    }
-
-    // Filter by Price Range
-    if (minPrice || maxPrice) {
-      queryObj.price = {};
-      if (minPrice) queryObj.price.$gte = Number(minPrice);
-      if (maxPrice) queryObj.price.$lte = Number(maxPrice);
-    }
-
-    // General Keyword Search
-    if (search) {
+    // 1. Keyword / Full Text Search across title, description, city, state, address
+    const searchKeyword = keyword || search;
+    if (searchKeyword && searchKeyword.trim() !== '') {
+      const regex = new RegExp(searchKeyword.trim(), 'i');
       queryObj.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { city: { $regex: search, $options: 'i' } },
-        { address: { $regex: search, $options: 'i' } }
+        { title: regex },
+        { description: regex },
+        { city: regex },
+        { state: regex },
+        { address: regex }
       ];
     }
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    // 2. City Filter (Case-insensitive)
+    if (city && city.trim() !== '') {
+      queryObj.city = { $regex: city.trim(), $options: 'i' };
+    }
+
+    // 3. State Filter (Case-insensitive)
+    if (state && state.trim() !== '') {
+      queryObj.state = { $regex: state.trim(), $options: 'i' };
+    }
+
+    // 4. Purpose Filter (Rent / Sell)
+    if (purpose && purpose.trim() !== '') {
+      queryObj.purpose = purpose.trim();
+    }
+
+    // 5. Property Type Filter
+    if (propertyType && propertyType.trim() !== '') {
+      queryObj.propertyType = propertyType.trim();
+    }
+
+    // 6. Status Filter (default to 'available' unless specifically asked for 'all' or specific status)
+    if (status && status.toLowerCase() !== 'all') {
+      queryObj.status = status;
+    } else if (!status) {
+      queryObj.status = 'available';
+    }
+
+    // 7. Bedrooms Filter (Minimum bedrooms)
+    if (bedrooms !== undefined && bedrooms !== '') {
+      queryObj.bedrooms = { $gte: Number(bedrooms) };
+    }
+
+    // 8. Bathrooms Filter (Minimum bathrooms)
+    if (bathrooms !== undefined && bathrooms !== '') {
+      queryObj.bathrooms = { $gte: Number(bathrooms) };
+    }
+
+    // 9. Price Range Filter
+    if (minPrice !== undefined && minPrice !== '' || maxPrice !== undefined && maxPrice !== '') {
+      queryObj.price = {};
+      if (minPrice !== undefined && minPrice !== '') queryObj.price.$gte = Number(minPrice);
+      if (maxPrice !== undefined && maxPrice !== '') queryObj.price.$lte = Number(maxPrice);
+    }
+
+    // 10. Sorting Logic: Latest, Price Low -> High, Price High -> Low
+    let sortOptions = { createdAt: -1 }; // Default: Latest
+    if (sort) {
+      const lowerSort = sort.toLowerCase();
+      if (lowerSort === 'price-asc' || lowerSort === 'price' || lowerSort === 'low-to-high') {
+        sortOptions = { price: 1 };
+      } else if (lowerSort === 'price-desc' || lowerSort === '-price' || lowerSort === 'high-to-low') {
+        sortOptions = { price: -1 };
+      } else if (lowerSort === 'oldest' || lowerSort === 'createdat') {
+        sortOptions = { createdAt: 1 };
+      } else if (lowerSort === 'latest' || lowerSort === '-createdat') {
+        sortOptions = { createdAt: -1 };
+      }
+    }
+
+    // 11. Pagination Controls
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
     const skip = (pageNum - 1) * limitNum;
 
-    const totalProperties = await Property.countDocuments(queryObj);
-    const properties = await Property.find(queryObj)
-      .populate('owner', 'name email phone avatar role')
-      .sort(sort)
-      .skip(skip)
-      .limit(limitNum);
+    // 12. Execute DB Count & Query concurrently with lean optimization
+    const [totalProperties, properties] = await Promise.all([
+      Property.countDocuments(queryObj),
+      Property.find(queryObj)
+        .populate('owner', 'name email phone avatar role')
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limitNum)
+        .lean()
+    ]);
+
+    const totalPages = Math.ceil(totalProperties / limitNum) || 1;
 
     return res.status(200).json({
       status: 'success',
       results: properties.length,
       total: totalProperties,
       page: pageNum,
-      totalPages: Math.ceil(totalProperties / limitNum),
+      limit: limitNum,
+      totalPages: totalPages,
+      hasNextPage: pageNum < totalPages,
+      hasPrevPage: pageNum > 1,
       data: properties
     });
   } catch (error) {
