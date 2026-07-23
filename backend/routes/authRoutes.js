@@ -5,13 +5,15 @@ const {
   loginUser,
   logoutUser,
   getMe,
-  updateUserProfile
+  updateUserProfile,
+  getOwnerPublicProfile
 } = require('../controllers/authController');
 const { protectRoute } = require('../middleware/authMiddleware');
 
 // Public routes
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.get('/owner/:id', getOwnerPublicProfile);
 
 // Protected routes
 router.post('/logout', protectRoute, logoutUser);

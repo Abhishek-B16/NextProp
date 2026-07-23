@@ -139,8 +139,38 @@ export default function PropertyCard({ property, isSaved = false, onToggleWishli
           </div>
         </div>
 
+        {/* Owner Info Bar */}
+        {owner && (
+          <div
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (owner._id) navigate(`/owner/${owner._id}`);
+            }}
+            className="pt-3 border-t border-white/10 flex items-center justify-between group/owner cursor-pointer hover:opacity-90"
+            title={`View ${owner.name}'s Profile`}
+          >
+            <div className="flex items-center gap-2">
+              <img
+                src={owner.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}
+                alt={owner.name}
+                className="w-6 h-6 rounded-full object-cover border border-[#10B981]/40"
+              />
+              <span className="text-xs font-semibold text-[#CBD5E1] group-hover/owner:text-[#10B981] transition-colors truncate max-w-[120px]">
+                {owner.name || 'Owner'}
+              </span>
+            </div>
+            {owner.isVerifiedOwner && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#10B981]/20 text-[#10B981] font-bold border border-[#10B981]/30 flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-[#10B981]" />
+                <span>Verified</span>
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Action Button */}
-        <div className="w-full py-2.5 px-4 rounded-xl bg-slate-900 group-hover:bg-brand-600 text-slate-200 group-hover:text-white border border-slate-800 group-hover:border-brand-500 text-xs font-semibold text-center transition-all duration-200 flex items-center justify-center gap-1.5">
+        <div className="w-full py-2.5 px-4 rounded-xl bg-[#1E293B] group-hover:bg-[#10B981] text-slate-200 group-hover:text-white border border-white/10 group-hover:border-[#10B981] text-xs font-semibold text-center transition-all duration-200 flex items-center justify-center gap-1.5">
           <span>View Property Details</span>
           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
         </div>

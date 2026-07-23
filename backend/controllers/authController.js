@@ -178,10 +178,46 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
+// @desc    Get owner public profile with their properties
+// @route   GET /api/auth/owner/:id
+// @access  Public
+const getOwnerPublicProfile = async (req, res) => {
+  try {
+    const owner = await User.findById(req.params.id).select('-password');
+    if (!owner) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Owner profile not found.'
+      });
+    }
+
+    const Property = require('../models/Property');
+    const properties = await Property.find({ owner: owner._id }).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        owner,
+        totalListings: properties.length,
+        responseTime: 'Within 1 hour',
+        rating: 4.9,
+        properties
+      }
+    });
+  } catch (error) {
+    console.error('❌ Get Owner Profile Error:', error.message);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || 'Server error fetching owner profile.'
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
   getMe,
-  updateUserProfile
+  updateUserProfile,
+  getOwnerPublicProfile
 };

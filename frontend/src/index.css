@@ -9,67 +9,52 @@
   }
 
   body {
-    @apply bg-[#0B101B] text-slate-100 font-sans antialiased min-h-screen selection:bg-emerald-500 selection:text-white tracking-normal;
+    @apply bg-[#0F172A] text-[#F8FAFC] font-sans antialiased min-h-screen selection:bg-[#00C9A7] selection:text-white tracking-normal;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.06) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.05) 0px, transparent 50%),
-      radial-gradient(at 50% 50%, rgba(245, 158, 11, 0.03) 0px, transparent 60%);
+      radial-gradient(at 0% 0%, rgba(0, 201, 167, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(2, 102, 178, 0.08) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.95) 0px, transparent 70%);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Manrope', 'Inter', sans-serif;
   }
 
   /* Universal Natural Inputs & Controls */
   input, select, textarea {
-    @apply bg-[#111827]/90 border-slate-800 text-slate-100 placeholder-slate-500 focus:border-emerald-500/80 focus:ring-2 focus:ring-emerald-500/20 transition-all;
+    @apply bg-[#162032]/90 border border-white/10 text-[#F8FAFC] placeholder-[#CBD5E1]/50 focus:border-[#00C9A7] focus:ring-2 focus:ring-[#00C9A7]/20 transition-all rounded-xl;
   }
 }
 
 @layer utilities {
-  /* CLASSICAL & NATURAL REAL ESTATE UTILITIES */
+  /* NEXTPROP BRAND UTILITIES */
   .glass-panel {
-    @apply bg-[#111827]/85 backdrop-blur-xl border border-slate-800/80 shadow-2xl text-slate-100;
+    @apply bg-[#162032]/90 backdrop-blur-xl border border-white/10 shadow-2xl text-[#F8FAFC];
   }
   
   .glass-card {
-    @apply bg-[#111827]/70 backdrop-blur-md border border-slate-800/80 hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10 text-slate-100 transition-all duration-300;
+    @apply bg-[#162032]/80 backdrop-blur-md border border-white/10 hover:border-[#00C9A7]/50 hover:shadow-2xl hover:shadow-[#00C9A7]/10 text-[#F8FAFC] transition-all duration-300;
   }
   
   .glass-input {
-    @apply bg-[#111827]/90 border border-slate-800 text-slate-100 placeholder-slate-500 focus:border-emerald-500/80 focus:ring-2 focus:ring-emerald-500/20 transition-all;
+    @apply bg-[#162032]/90 border border-white/10 text-[#F8FAFC] placeholder-[#CBD5E1]/50 focus:border-[#00C9A7] focus:ring-2 focus:ring-[#00C9A7]/20 transition-all;
   }
   
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-sky-400 to-amber-300 font-extrabold;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#00C9A7] via-[#00B4D8] to-sky-200 font-extrabold;
   }
 
   .gradient-btn {
-    @apply bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all duration-200;
+    @apply bg-gradient-to-r from-[#0066B2] via-[#0096C7] to-[#00C9A7] hover:from-[#005399] hover:to-[#00b4d8] text-white font-bold shadow-lg shadow-[#00C9A7]/20 active:scale-[0.98] transition-all duration-200;
   }
 
   .themed-subtext {
-    @apply text-slate-400;
+    @apply text-[#CBD5E1];
   }
 
   .themed-card-bg {
-    @apply bg-[#111827]/60 border-slate-800;
+    @apply bg-[#162032]/60 border-white/10;
   }
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.05); }
-}
-
-.animate-pulseGlow {
-  animation: pulseGlow 4s ease-in-out infinite;
 }
 
 /* Custom Scrollbar */
@@ -79,7 +64,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b101b;
+  background: #0f172a;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -90,5 +75,7 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
+
+
 
 

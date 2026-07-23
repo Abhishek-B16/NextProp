@@ -17,8 +17,8 @@ const EditProperty = lazy(() => import('../pages/EditProperty'));
 const WishlistPage = lazy(() => import('../pages/WishlistPage'));
 const BookingsPage = lazy(() => import('../pages/BookingsPage'));
 const Dashboard = lazy(() => import('../pages/Dashboard'));
-const AdminDashboard = lazy(() => import('../pages/AdminDashboard'));
 const ChatPage = lazy(() => import('../pages/ChatPage'));
+const OwnerProfile = lazy(() => import('../pages/OwnerProfile'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 
 export default function AppRoutes() {
@@ -30,12 +30,13 @@ export default function AppRoutes() {
           <Route index element={<Home />} />
           <Route path="properties" element={<Properties />} />
           <Route path="properties/:id" element={<PropertyDetails />} />
+          <Route path="owner/:id" element={<OwnerProfile />} />
 
-          {/* Protected Routes for Property Listing */}
+          {/* Protected Routes for Property Owners */}
           <Route
             path="properties/add"
             element={
-              <ProtectedRoute allowedRoles={[ROLES.CUSTOMER, ROLES.OWNER, ROLES.ADMIN]}>
+              <ProtectedRoute allowedRoles={[ROLES.OWNER]}>
                 <AddProperty />
               </ProtectedRoute>
             }
@@ -43,18 +44,8 @@ export default function AppRoutes() {
           <Route
             path="properties/edit/:id"
             element={
-              <ProtectedRoute allowedRoles={[ROLES.OWNER, ROLES.ADMIN]}>
+              <ProtectedRoute allowedRoles={[ROLES.OWNER]}>
                 <EditProperty />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Protected Route for Admin */}
-          <Route
-            path="admin/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
-                <AdminDashboard />
               </ProtectedRoute>
             }
           />

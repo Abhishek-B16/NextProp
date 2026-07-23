@@ -8,28 +8,39 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          200: '#bae0fd',
-          300: '#7cc8fd',
-          400: '#36aff7',
-          500: '#0c93e4',
-          600: '#0274c2',
-          700: '#035ca0',
-          800: '#074e84',
-          900: '#0c426e',
-          950: '#082a4a',
+        saas: {
+          bg: '#0F172A',
+          surface: '#162032',
+          card: '#1E293B',
+          royalBlue: '#0066B2',
+          electricTeal: '#00C9A7',
+          text: '#F8FAFC',
+          subtext: '#CBD5E1'
         },
-        accent: {
-          50: '#fff1f2',
-          100: '#ffe4e6',
-          500: '#f43f5e',
-          600: '#e11d48',
+        brand: {
+          50: '#eef8ff',
+          100: '#d8efff',
+          200: '#b9e3ff',
+          300: '#88d1ff',
+          400: '#50b5ff',
+          500: '#0066b2',
+          600: '#005399',
+          700: '#00427a',
+          800: '#033966',
+          900: '#083054'
+        },
+        tealAccent: {
+          50: '#e6fffa',
+          100: '#b2f5ea',
+          400: '#319795',
+          500: '#00c9a7',
+          600: '#00b4d8',
+          700: '#0096c7'
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        heading: ['Manrope', 'Inter', 'system-ui', 'sans-serif']
       }
     },
   },
