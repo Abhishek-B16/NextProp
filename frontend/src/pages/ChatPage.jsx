@@ -129,7 +129,13 @@ export default function ChatPage() {
 
     const handleNewMessage = (message) => {
       if (activeConversation && message.conversation === activeConversation._id) {
-        setMessages((prev) => [...prev, message]);
+        setMessages((prev) => {
+          const msgId = message._id;
+          if (msgId && prev.some((m) => m._id === msgId)) {
+            return prev;
+          }
+          return [...prev, message];
+        });
         emitMarkRead(activeConversation._id);
       }
 
@@ -213,8 +219,12 @@ export default function ChatPage() {
       });
 
       if (data && data.data) {
-        setMessages((prev) => [...prev, data.data]);
-        socket?.emit('new_message', data.data);
+        const sentMsg = data.data;
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === sentMsg._id)) return prev;
+          return [...prev, sentMsg];
+        });
+        socket?.emit('new_message', sentMsg);
       }
     } catch (err) {
       console.error('Failed to send message:', err);

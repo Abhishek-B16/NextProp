@@ -104,8 +104,13 @@ export default function Dashboard() {
     }
   };
 
-  // Calculations for Metrics
-  const totalRevenue = myProperties.reduce((acc, curr) => acc + (curr.price || 0), 0);
+  // Calculations for Financial Metrics & Rent vs Sales
+  const rentalProps = myProperties.filter((p) => p.purpose === 'Rent');
+  const salesProps = myProperties.filter((p) => p.purpose === 'Sell');
+
+  const rentalRevenue = rentalProps.reduce((acc, curr) => acc + (curr.price || 0), 0);
+  const salesRevenue = salesProps.reduce((acc, curr) => acc + (curr.price || 0), 0);
+
   const avgRating = (
     myProperties.reduce((acc, curr) => acc + (curr.averageRating || 5), 0) /
     (myProperties.length || 1)
@@ -198,8 +203,11 @@ export default function Dashboard() {
               <DashboardStats
                 propertiesCount={myProperties.length}
                 bookingsCount={ownerBookings.length}
-                totalRevenue={totalRevenue}
+                rentalRevenue={rentalRevenue}
+                salesRevenue={salesRevenue}
                 averageRating={avgRating}
+                rentCount={rentalProps.length}
+                sellCount={salesProps.length}
               />
               <AnalyticsCharts />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

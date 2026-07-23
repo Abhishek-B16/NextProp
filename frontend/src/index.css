@@ -3,47 +3,73 @@
 @tailwind utilities;
 
 @layer base {
-  html.light body {
-    @apply bg-[#F8FAFC] text-slate-800 font-sans antialiased min-h-screen selection:bg-brand-500 selection:text-white tracking-normal;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.05) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.05) 0px, transparent 50%);
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
   }
 
-  html.dark body, body {
-    @apply bg-[#090D16] text-slate-100 font-sans antialiased min-h-screen selection:bg-brand-500 selection:text-white tracking-normal;
+  body {
+    @apply bg-[#0B101B] text-slate-100 font-sans antialiased min-h-screen selection:bg-emerald-500 selection:text-white tracking-normal;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.06) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.06) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.05) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, rgba(245, 158, 11, 0.03) 0px, transparent 60%);
+  }
+
+  /* Universal Natural Inputs & Controls */
+  input, select, textarea {
+    @apply bg-[#111827]/90 border-slate-800 text-slate-100 placeholder-slate-500 focus:border-emerald-500/80 focus:ring-2 focus:ring-emerald-500/20 transition-all;
   }
 }
 
 @layer utilities {
-  /* LIGHT MODE UTILITIES */
-  html.light .glass-panel {
-    @apply bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-xl shadow-slate-200/60 text-slate-800;
+  /* CLASSICAL & NATURAL REAL ESTATE UTILITIES */
+  .glass-panel {
+    @apply bg-[#111827]/85 backdrop-blur-xl border border-slate-800/80 shadow-2xl text-slate-100;
   }
-  html.light .glass-card {
-    @apply bg-white/90 backdrop-blur-md border border-slate-200 hover:border-brand-500/60 hover:shadow-xl hover:shadow-brand-500/10 text-slate-800 transition-all duration-300;
+  
+  .glass-card {
+    @apply bg-[#111827]/70 backdrop-blur-md border border-slate-800/80 hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10 text-slate-100 transition-all duration-300;
   }
-  html.light .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-600 via-sky-600 to-indigo-600 font-extrabold;
+  
+  .glass-input {
+    @apply bg-[#111827]/90 border border-slate-800 text-slate-100 placeholder-slate-500 focus:border-emerald-500/80 focus:ring-2 focus:ring-emerald-500/20 transition-all;
   }
-
-  /* DARK MODE UTILITIES */
-  html.dark .glass-panel, .glass-panel {
-    @apply bg-slate-900/85 backdrop-blur-xl border border-slate-800/80 shadow-2xl text-slate-100;
-  }
-  html.dark .glass-card, .glass-card {
-    @apply bg-slate-900/70 backdrop-blur-md border border-slate-800/80 hover:border-brand-500/50 hover:shadow-2xl hover:shadow-brand-500/10 text-slate-100 transition-all duration-300;
-  }
-  html.dark .gradient-text, .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-sky-400 to-indigo-300 font-extrabold;
+  
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-sky-400 to-amber-300 font-extrabold;
   }
 
   .gradient-btn {
-    @apply bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold shadow-lg shadow-brand-500/25 active:scale-[0.98] transition-all duration-200;
+    @apply bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all duration-200;
   }
+
+  .themed-subtext {
+    @apply text-slate-400;
+  }
+
+  .themed-card-bg {
+    @apply bg-[#111827]/60 border-slate-800;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.animate-pulseGlow {
+  animation: pulseGlow 4s ease-in-out infinite;
 }
 
 /* Custom Scrollbar */
@@ -52,24 +78,17 @@
   height: 6px;
 }
 
-html.light ::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-html.light ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
-}
-html.light ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+::-webkit-scrollbar-track {
+  background: #0b101b;
 }
 
-html.dark ::-webkit-scrollbar-track, ::-webkit-scrollbar-track {
-  background: #090d16;
-}
-html.dark ::-webkit-scrollbar-thumb, ::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   background: #1e293b;
   border-radius: 9999px;
 }
-html.dark ::-webkit-scrollbar-thumb:hover, ::-webkit-scrollbar-thumb:hover {
+
+::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
+
+

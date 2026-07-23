@@ -26,6 +26,7 @@ import { useAuth } from '../context/AuthContext';
 import ImageGallery from '../components/property/ImageGallery';
 import PropertyMap from '../components/property/PropertyMap';
 import BookVisitModal from '../components/property/BookVisitModal';
+import CallOwnerModal from '../components/property/CallOwnerModal';
 import ReviewSection from '../components/property/ReviewSection';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
@@ -41,6 +42,7 @@ export default function PropertyDetails() {
 
   // Modal State
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [callModalOpen, setCallModalOpen] = useState(false);
 
   // Fetch Property & Wishlist status
   const fetchProperty = useCallback(async () => {
@@ -344,6 +346,15 @@ export default function PropertyDetails() {
                 <span>Book a Visit Request</span>
               </button>
 
+              <button
+                type="button"
+                onClick={() => setCallModalOpen(true)}
+                className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+              >
+                <Phone className="w-4 h-4" />
+                <span>Call / Contact Owner</span>
+              </button>
+
               {owner && owner._id !== user?._id && (
                 <button
                   type="button"
@@ -401,6 +412,14 @@ export default function PropertyDetails() {
         propertyTitle={title}
         isOpen={bookingModalOpen}
         onClose={() => setBookingModalOpen(false)}
+      />
+
+      {/* Call Owner Modal Dialog */}
+      <CallOwnerModal
+        isOpen={callModalOpen}
+        onClose={() => setCallModalOpen(false)}
+        owner={owner}
+        propertyTitle={title}
       />
     </div>
   );

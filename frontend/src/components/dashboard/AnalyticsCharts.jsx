@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -10,36 +10,65 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend
+  Legend,
+  BarChart,
+  Bar
 } from 'recharts';
 
 export default function AnalyticsCharts({ monthlyData = [], statusData = [] }) {
+  const [chartMetric, setChartMetric] = useState('revenue'); // 'revenue' | 'bookings'
+
   // Default fallback chart datasets if empty
   const defaultMonthlyData = monthlyData.length > 0 ? monthlyData : [
-    { month: 'Jan', bookings: 4, revenue: 120000 },
-    { month: 'Feb', bookings: 7, revenue: 180000 },
-    { month: 'Mar', bookings: 5, revenue: 150000 },
-    { month: 'Apr', bookings: 9, revenue: 240000 },
-    { month: 'May', bookings: 12, revenue: 310000 },
-    { month: 'Jun', bookings: 15, revenue: 420000 }
+    { month: 'Jan', bookings: 6, rentIncome: 140000, salesIncome: 12000000 },
+    { month: 'Feb', bookings: 9, rentIncome: 185000, salesIncome: 15000000 },
+    { month: 'Mar', bookings: 12, rentIncome: 210000, salesIncome: 18000000 },
+    { month: 'Apr', bookings: 15, rentIncome: 245000, salesIncome: 22000000 },
+    { month: 'May', bookings: 18, rentIncome: 290000, salesIncome: 28000000 },
+    { month: 'Jun', bookings: 22, rentIncome: 340000, salesIncome: 35000000 }
   ];
 
   const defaultStatusData = statusData.length > 0 ? statusData : [
-    { name: 'Available', value: 8, color: '#0c93e4' },
-    { name: 'Rented', value: 5, color: '#10b981' },
-    { name: 'Sold', value: 2, color: '#f59e0b' }
+    { name: 'For Rent', value: 12, color: '#0c93e4' },
+    { name: 'For Sale', value: 8, color: '#10b981' },
+    { name: 'Occupied/Rented', value: 6, color: '#8b5cf6' },
+    { name: 'Sold', value: 3, color: '#f59e0b' }
   ];
 
-  const COLORS = ['#0c93e4', '#10b981', '#f59e0b', '#8b5cf6'];
+  const COLORS = ['#0c93e4', '#10b981', '#8b5cf6', '#f59e0b'];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* 1. Monthly Revenue & Bookings Trend Area Chart */}
-      <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      {/* 1. Monthly Revenue & Rental/Sales Growth Area Chart */}
+      <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
           <div>
-            <h3 className="text-sm font-bold text-slate-100">Revenue & Visit Trends</h3>
-            <p className="text-xs text-slate-400">Monthly booking inquiries and estimated revenue growth</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Income & Inquiries Growth</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Monthly breakdown of rental cashflow & visit requests</p>
+          </div>
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={() => setChartMetric('revenue')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                chartMetric === 'revenue'
+                  ? 'bg-brand-500 text-white shadow-md'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              Income (₹)
+            </button>
+            <button
+              type="button"
+              onClick={() => setChartMetric('bookings')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                chartMetric === 'bookings'
+                  ? 'bg-brand-500 text-white shadow-md'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              Visit Tours
+            </button>
           </div>
         </div>
 
@@ -47,7 +76,7 @@ export default function AnalyticsCharts({ monthlyData = [], statusData = [] }) {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={defaultMonthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#0c93e4" stopOpacity={0.4} />
                   <stop offset="95%" stopColor="#0c93e4" stopOpacity={0} />
                 </linearGradient>
@@ -56,7 +85,7 @@ export default function AnalyticsCharts({ monthlyData = [], statusData = [] }) {
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
               <XAxis dataKey="month" stroke="#64748b" fontSize={11} />
               <YAxis stroke="#64748b" fontSize={11} />
               <Tooltip
@@ -68,18 +97,21 @@ export default function AnalyticsCharts({ monthlyData = [], statusData = [] }) {
                   fontSize: '12px'
                 }}
               />
-              <Area type="monotone" dataKey="revenue" name="Revenue (₹)" stroke="#0c93e4" fillOpacity={1} fill="url(#colorRevenue)" />
-              <Area type="monotone" dataKey="bookings" name="Bookings" stroke="#10b981" fillOpacity={1} fill="url(#colorBookings)" />
+              {chartMetric === 'revenue' ? (
+                <Area type="monotone" dataKey="rentIncome" name="Rental Income (₹)" stroke="#0c93e4" fillOpacity={1} fill="url(#colorRent)" />
+              ) : (
+                <Area type="monotone" dataKey="bookings" name="Scheduled Visits" stroke="#10b981" fillOpacity={1} fill="url(#colorBookings)" />
+              )}
             </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* 2. Property Listing Status Donut Chart */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4 flex flex-col justify-between">
-        <div className="border-b border-slate-800 pb-3">
-          <h3 className="text-sm font-bold text-slate-100">Property Status</h3>
-          <p className="text-xs text-slate-400">Distribution of active listings</p>
+      {/* 2. Property Portfolio Distribution Donut Chart */}
+      <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 flex flex-col justify-between">
+        <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Buy/Sell & Rent Breakdown</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Distribution of active & fulfilled property deals</p>
         </div>
 
         <div className="h-60 w-full">
@@ -89,8 +121,8 @@ export default function AnalyticsCharts({ monthlyData = [], statusData = [] }) {
                 data={defaultStatusData}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={80}
+                innerRadius={55}
+                outerRadius={75}
                 paddingAngle={4}
                 dataKey="value"
               >
@@ -107,7 +139,7 @@ export default function AnalyticsCharts({ monthlyData = [], statusData = [] }) {
                   fontSize: '12px'
                 }}
               />
-              <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }} />
+              <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#64748b' }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -115,3 +147,4 @@ export default function AnalyticsCharts({ monthlyData = [], statusData = [] }) {
     </div>
   );
 }
+

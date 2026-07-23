@@ -31,11 +31,11 @@ export default function AppRoutes() {
           <Route path="properties" element={<Properties />} />
           <Route path="properties/:id" element={<PropertyDetails />} />
 
-          {/* Protected Routes for Property Owners & Admin */}
+          {/* Protected Routes for Property Listing */}
           <Route
             path="properties/add"
             element={
-              <ProtectedRoute allowedRoles={[ROLES.OWNER, ROLES.ADMIN]}>
+              <ProtectedRoute allowedRoles={[ROLES.CUSTOMER, ROLES.OWNER, ROLES.ADMIN]}>
                 <AddProperty />
               </ProtectedRoute>
             }

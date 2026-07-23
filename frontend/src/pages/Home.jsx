@@ -21,9 +21,24 @@ import {
 import { getPropertiesApi } from '../services/propertyService';
 import PropertyGrid from '../components/property/PropertyGrid';
 import { PROPERTY_TYPES } from '../constants/roles';
+import { useAuth } from '../context/AuthContext';
+import OwnerUpgradeModal from '../components/common/OwnerUpgradeModal';
 
 export default function Home() {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
+  const handleListPropertyClick = (e) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/properties/add');
+    } else if (user?.role === 'customer') {
+      setUpgradeModalOpen(true);
+    } else {
+      navigate('/properties/add');
+    }
+  };
 
   // Search State
   const [searchTab, setSearchTab] = useState('All'); // 'All' | 'Rent' | 'Sell'
@@ -143,42 +158,46 @@ export default function Home() {
   return (
     <div className="space-y-20 pb-16">
       {/* 1. HERO SECTION */}
-      <section className="relative pt-6 pb-12 overflow-hidden text-center">
-        {/* Ambient Glow Effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <section className="relative pt-8 pb-14 overflow-hidden text-center">
+        {/* Ambient Animated Glow Effects */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none animate-pulseGlow"></div>
 
         <div className="max-w-4xl mx-auto space-y-6 relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-semibold">
-            <Sparkles className="w-4 h-4 text-brand-400" />
-            <span>Direct Owner Real Estate Marketplace</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/15 border border-brand-500/30 text-brand-600 dark:text-brand-300 text-xs font-bold shadow-sm">
+            <Sparkles className="w-4 h-4 text-brand-500 dark:text-brand-400" />
+            <span>Direct Owner Real Estate Marketplace &bull; 0% Brokerage</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-100 leading-[1.15]">
+          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 dark:text-slate-100 leading-[1.15]">
             Find Your Dream Home Without <br className="hidden sm:inline" />
             <span className="gradient-text">Brokerage or Hassle</span>
           </h1>
 
-          <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto font-normal leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg max-w-2xl mx-auto font-normal leading-relaxed">
             Search thousands of verified residential apartments, houses, villas, and commercial spaces. Connect directly with owners and schedule visits in seconds.
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <Link to="/properties" className="gradient-btn px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2">
+            <Link to="/properties" className="gradient-btn px-6 py-3.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-xl shadow-emerald-500/20">
               <span>Explore All Listings</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link to="/register" className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 font-semibold text-sm transition-all">
+            <button
+              type="button"
+              onClick={handleListPropertyClick}
+              className="px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-sm transition-all shadow-md"
+            >
               List Your Property
-            </Link>
+            </button>
           </div>
         </div>
 
         {/* 2. SEARCH BAR SECTION */}
         <div className="max-w-4xl mx-auto mt-10 relative z-20">
-          <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-slate-800 shadow-2xl">
+          <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl">
             {/* Purpose Tabs */}
-            <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
               {['All', 'Rent', 'Sell'].map((tab) => (
                 <button
                   key={tab}
@@ -187,7 +206,7 @@ export default function Home() {
                   className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${
                     searchTab === tab
                       ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20'
-                      : 'bg-slate-900/60 text-slate-400 hover:text-slate-200'
+                      : 'bg-slate-100 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
                 >
                   {tab === 'All' ? 'All Purpose' : `For ${tab}`}
@@ -199,27 +218,27 @@ export default function Home() {
             <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* City Input */}
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <MapPin className="w-4 h-4 text-brand-400" />
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <MapPin className="w-4 h-4 text-brand-500" />
                 </div>
                 <input
                   type="text"
-                  placeholder="City (e.g. Mumbai, Delhi)"
+                  placeholder="City (e.g. Mumbai, Delhi, Pune)"
                   value={searchCity}
                   onChange={(e) => setSearchCity(e.target.value)}
-                  className="w-full pl-10 pr-3 py-3 bg-slate-900/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:border-brand-500/80 transition-all"
+                  className="w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:outline-none focus:border-brand-500 transition-all"
                 />
               </div>
 
               {/* Property Type Selector */}
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <Building2 className="w-4 h-4 text-brand-400" />
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Building2 className="w-4 h-4 text-brand-500" />
                 </div>
                 <select
                   value={searchType}
                   onChange={(e) => setSearchType(e.target.value)}
-                  className="w-full pl-10 pr-3 py-3 bg-slate-900/90 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-brand-500/80 transition-all appearance-none cursor-pointer"
+                  className="w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-brand-500 transition-all appearance-none cursor-pointer"
                 >
                   <option value="">All Property Types</option>
                   {PROPERTY_TYPES.map((t) => (
@@ -231,7 +250,7 @@ export default function Home() {
               {/* Submit Search Button */}
               <button
                 type="submit"
-                className="gradient-btn py-3 px-6 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand-500/20"
+                className="gradient-btn py-3 px-6 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-500/20"
               >
                 <Search className="w-4 h-4" />
                 <span>Search Properties</span>
@@ -243,12 +262,12 @@ export default function Home() {
 
       {/* 3. FEATURED PROPERTIES SECTION */}
       <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-900 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
-            <span className="text-xs font-bold text-brand-400 uppercase tracking-widest">Handpicked Listings</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Featured Properties</h2>
+            <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">Handpicked Listings</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">Featured Properties</h2>
           </div>
-          <Link to="/properties" className="text-xs font-semibold text-brand-400 hover:text-brand-300 flex items-center gap-1">
+          <Link to="/properties" className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1">
             <span>View All Properties</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
@@ -260,8 +279,8 @@ export default function Home() {
       {/* 4. POPULAR CITIES SECTION */}
       <section className="space-y-6">
         <div>
-          <span className="text-xs font-bold text-brand-400 uppercase tracking-widest">Explore Top Locations</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Popular Cities</h2>
+          <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">Explore Top Locations</span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">Popular Cities</h2>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -269,7 +288,7 @@ export default function Home() {
             <Link
               key={city.name}
               to={`/properties?city=${city.name}`}
-              className="group glass-card rounded-2xl overflow-hidden relative aspect-[4/5] border border-slate-800/80 hover:border-brand-500/60 transition-all duration-300"
+              className="group glass-card rounded-2xl overflow-hidden relative aspect-[4/5] border border-slate-200 dark:border-slate-800/80 hover:border-brand-500 transition-all duration-300 shadow-md"
             >
               <img
                 src={city.image}
@@ -277,12 +296,12 @@ export default function Home() {
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
               <div className="absolute bottom-3 left-3 right-3 text-left">
-                <h3 className="font-bold text-slate-100 text-sm group-hover:text-brand-300 transition-colors">
+                <h3 className="font-bold text-white text-sm group-hover:text-brand-300 transition-colors">
                   {city.name}
                 </h3>
-                <p className="text-[10px] text-slate-400 line-clamp-1">{city.label}</p>
+                <p className="text-[10px] text-slate-300 line-clamp-1">{city.label}</p>
               </div>
             </Link>
           ))}
@@ -292,8 +311,8 @@ export default function Home() {
       {/* 5. CATEGORIES SECTION */}
       <section className="space-y-6">
         <div>
-          <span className="text-xs font-bold text-brand-400 uppercase tracking-widest">Browse by Category</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Property Types</h2>
+          <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">Browse by Category</span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">Property Types</h2>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -301,12 +320,12 @@ export default function Home() {
             <Link
               key={type}
               to={`/properties?propertyType=${type}`}
-              className="glass-card p-5 rounded-2xl border border-slate-800/80 hover:border-brand-500/60 text-center flex flex-col items-center justify-center space-y-2 group transition-all"
+              className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-brand-500 text-center flex flex-col items-center justify-center space-y-2 group transition-all"
             >
-              <div className="w-11 h-11 bg-slate-900 rounded-xl flex items-center justify-center text-brand-400 group-hover:bg-brand-500 group-hover:text-white transition-all">
+              <div className="w-11 h-11 bg-brand-500/10 rounded-xl flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:bg-brand-500 group-hover:text-white transition-all">
                 <Building2 className="w-5 h-5" />
               </div>
-              <span className="text-xs font-bold text-slate-200 group-hover:text-brand-300 transition-colors">
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-300 transition-colors">
                 {type}
               </span>
             </Link>
@@ -315,39 +334,39 @@ export default function Home() {
       </section>
 
       {/* 6. HOW IT WORKS SECTION */}
-      <section className="glass-panel p-8 sm:p-12 rounded-3xl border border-slate-800/80 space-y-8">
+      <section className="glass-panel p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-slate-800/80 space-y-8 shadow-xl">
         <div className="text-center max-w-xl mx-auto">
-          <span className="text-xs font-bold text-brand-400 uppercase tracking-widest">Simple & Transparent</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">How NextProp Works</h2>
+          <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">Simple & Transparent</span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">How NextProp Works</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center space-y-3 p-4">
-            <div className="w-14 h-14 bg-brand-500/15 border border-brand-500/30 text-brand-400 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
+            <div className="w-14 h-14 bg-brand-500/15 border border-brand-500/30 text-brand-600 dark:text-brand-400 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
               <Search className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-100">1. Discover & Filter</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">1. Discover & Filter</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Use smart multi-criteria filters for location, budget, bedrooms, and purpose to find properties that fit your lifestyle.
             </p>
           </div>
 
           <div className="text-center space-y-3 p-4">
-            <div className="w-14 h-14 bg-brand-500/15 border border-brand-500/30 text-brand-400 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
+            <div className="w-14 h-14 bg-brand-500/15 border border-brand-500/30 text-brand-600 dark:text-brand-400 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
               <Calendar className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-100">2. Book a Visit</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">2. Book a Visit</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Select your preferred date and request a property tour directly with verified owners without any middleman fees.
             </p>
           </div>
 
           <div className="text-center space-y-3 p-4">
-            <div className="w-14 h-14 bg-brand-500/15 border border-brand-500/30 text-brand-400 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
+            <div className="w-14 h-14 bg-brand-500/15 border border-brand-500/30 text-brand-600 dark:text-brand-400 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
               <Key className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-100">3. Move In & Review</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">3. Move In & Review</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Finalize rental or purchase terms, move into your new home, and leave a verified customer review.
             </p>
           </div>
@@ -357,24 +376,24 @@ export default function Home() {
       {/* 7. TESTIMONIALS SECTION */}
       <section className="space-y-6">
         <div className="text-center max-w-xl mx-auto">
-          <span className="text-xs font-bold text-brand-400 uppercase tracking-widest">Community Feedback</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">What Our Users Say</h2>
+          <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">Community Feedback</span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">What Our Users Say</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((t) => (
-            <div key={t.id} className="glass-card p-6 rounded-2xl border border-slate-800/80 space-y-4 flex flex-col justify-between">
+            <div key={t.id} className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-4 flex flex-col justify-between shadow-md">
               <div className="flex items-center gap-1 text-amber-400">
                 {[...Array(t.rating)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-amber-400" />
                 ))}
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed italic">"{t.comment}"</p>
-              <div className="flex items-center gap-3 pt-2 border-t border-slate-800/60">
-                <img src={t.avatar} alt={t.name} className="w-10 h-10 rounded-full object-cover border border-slate-700" />
+              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed italic">"{t.comment}"</p>
+              <div className="flex items-center gap-3 pt-2 border-t border-slate-200 dark:border-slate-800/60">
+                <img src={t.avatar} alt={t.name} className="w-10 h-10 rounded-full object-cover border border-slate-300 dark:border-slate-700" />
                 <div>
-                  <h4 className="text-xs font-bold text-slate-100">{t.name}</h4>
-                  <p className="text-[10px] text-slate-400">{t.role}</p>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">{t.name}</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">{t.role}</p>
                 </div>
               </div>
             </div>
@@ -385,30 +404,30 @@ export default function Home() {
       {/* 8. FAQ SECTION */}
       <section className="space-y-6 max-w-3xl mx-auto">
         <div className="text-center">
-          <span className="text-xs font-bold text-brand-400 uppercase tracking-widest">Got Questions?</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">Frequently Asked Questions</h2>
+          <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">Got Questions?</span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">Frequently Asked Questions</h2>
         </div>
 
         <div className="space-y-3">
           {faqs.map((faq, idx) => (
             <div
               key={idx}
-              className="glass-card rounded-2xl border border-slate-800/80 overflow-hidden transition-all"
+              className="glass-card rounded-2xl border border-slate-200 dark:border-slate-800/80 overflow-hidden transition-all"
             >
               <button
                 type="button"
                 onClick={() => toggleFaq(idx)}
                 className="w-full p-5 text-left flex items-center justify-between gap-4 focus:outline-none"
               >
-                <span className="text-sm font-bold text-slate-200">{faq.question}</span>
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{faq.question}</span>
                 {openFaqIndex === idx ? (
-                  <ChevronUp className="w-4 h-4 text-brand-400 flex-shrink-0" />
+                  <ChevronUp className="w-4 h-4 text-brand-500 flex-shrink-0" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
                 )}
               </button>
               {openFaqIndex === idx && (
-                <div className="px-5 pb-5 text-xs text-slate-400 leading-relaxed border-t border-slate-800/50 pt-3 animate-fadeIn">
+                <div className="px-5 pb-5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-200 dark:border-slate-800/50 pt-3 animate-fadeIn">
                   {faq.answer}
                 </div>
               )}
@@ -416,6 +435,12 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* Upgrade Modal for Customer Account */}
+      <OwnerUpgradeModal
+        isOpen={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+      />
     </div>
   );
 }
