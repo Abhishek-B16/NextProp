@@ -1,9 +1,11 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { MapPin, Bed, Bath, Maximize2, Star, ShieldCheck, Heart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, Bed, Bath, Maximize2, Star, ShieldCheck, Heart, ArrowRight } from 'lucide-react';
 import { formatPrice, getImageUrl, optimizeImageKitUrl } from '../../utils/formatters';
 
 export default function PropertyCard({ property, isSaved = false, onToggleWishlist }) {
+  const navigate = useNavigate();
+
   if (!property) return null;
 
   const {
@@ -26,8 +28,15 @@ export default function PropertyCard({ property, isSaved = false, onToggleWishli
   const rawImage = getImageUrl(images[0]);
   const optimizedImage = optimizeImageKitUrl(rawImage, 800, 80);
 
+  const handleCardClick = () => {
+    navigate(`/properties/${_id}`);
+  };
+
   return (
-    <div className="glass-card rounded-2xl overflow-hidden group flex flex-col h-full border border-slate-800/80 hover:border-slate-700 hover:shadow-2xl hover:shadow-brand-500/5 transition-all duration-300">
+    <div
+      onClick={handleCardClick}
+      className="glass-card rounded-2xl overflow-hidden group flex flex-col h-full border border-slate-800/80 hover:border-brand-500/60 hover:shadow-2xl hover:shadow-brand-500/10 transition-all duration-300 cursor-pointer"
+    >
       {/* Image Banner */}
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
         <img
@@ -106,7 +115,7 @@ export default function PropertyCard({ property, isSaved = false, onToggleWishli
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div>
           <h3 className="font-bold text-slate-100 group-hover:text-brand-400 transition-colors line-clamp-1 text-base">
-            <Link to={`/properties/${_id}`}>{title}</Link>
+            {title}
           </h3>
           <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1.5">
             <MapPin className="w-3.5 h-3.5 text-brand-400 flex-shrink-0" />
@@ -131,13 +140,12 @@ export default function PropertyCard({ property, isSaved = false, onToggleWishli
         </div>
 
         {/* Action Button */}
-        <Link
-          to={`/properties/${_id}`}
-          className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-brand-600 text-slate-200 hover:text-white border border-slate-800 hover:border-brand-500 text-xs font-semibold text-center transition-all duration-200 block"
-        >
-          View Details
-        </Link>
+        <div className="w-full py-2.5 px-4 rounded-xl bg-slate-900 group-hover:bg-brand-600 text-slate-200 group-hover:text-white border border-slate-800 group-hover:border-brand-500 text-xs font-semibold text-center transition-all duration-200 flex items-center justify-center gap-1.5">
+          <span>View Property Details</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+        </div>
       </div>
     </div>
   );
 }
+

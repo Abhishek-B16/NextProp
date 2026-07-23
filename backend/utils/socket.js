@@ -37,8 +37,10 @@ const initSocket = (server) => {
 
       console.log(`👤 User Online: ${strUserId} (Socket ID: ${socket.id})`);
 
-      // Broadcast list of currently online user IDs to all connected clients
-      io.emit('get_online_users', Array.from(onlineUsers.keys()));
+      const onlineList = Array.from(onlineUsers.keys());
+      io.emit('get_online_users', onlineList);
+      io.emit('online_users', onlineList);
+      io.emit('user_connected', strUserId);
     });
 
     // 2. Join Specific Conversation Room
@@ -46,6 +48,12 @@ const initSocket = (server) => {
       if (!conversationId) return;
       socket.join(`conversation:${conversationId}`);
       console.log(`💬 Socket ${socket.id} joined conversation room: conversation:${conversationId}`);
+    });
+
+    socket.on('join_room', (conversationId) => {
+      if (!conversationId) return;
+      socket.join(`conversation:${conversationId}`);
+      console.log(`💬 Socket ${socket.id} joined room: conversation:${conversationId}`);
     });
 
     // 3. Leave Specific Conversation Room
@@ -100,18 +108,22 @@ const initSocket = (server) => {
     // 6. Handle Disconnection & Cleanup
     socket.on('disconnect', () => {
       console.log(`⚡ Client disconnected: ${socket.id}`);
-      if (socket.userId && onlineUsers.has(socket.userId)) {
-        const userSockets = onlineUsers.get(socket.userId);
+      const disconnectedUserId = socket.userId;
+      if (disconnectedUserId && onlineUsers.has(disconnectedUserId)) {
+        const userSockets = onlineUsers.get(disconnectedUserId);
         userSockets.delete(socket.id);
 
         if (userSockets.size === 0) {
-          onlineUsers.delete(socket.userId);
-          console.log(`👤 User Offline: ${socket.userId}`);
+          onlineUsers.delete(disconnectedUserId);
+          console.log(`👤 User Offline: ${disconnectedUserId}`);
+          io.emit('user_disconnected', disconnectedUserId);
         }
       }
 
       // Broadcast updated online users list
-      io.emit('get_online_users', Array.from(onlineUsers.keys()));
+      const onlineList = Array.from(onlineUsers.keys());
+      io.emit('get_online_users', onlineList);
+      io.emit('online_users', onlineList);
     });
   });
 

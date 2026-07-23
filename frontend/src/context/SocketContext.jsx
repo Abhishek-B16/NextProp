@@ -28,23 +28,32 @@ export const SocketProvider = ({ children }) => {
 
     socketInstance.on('connect', () => {
       console.log('⚡ Socket.io connected:', socketInstance.id);
-      socketInstance.emit('setup', user._id);
+      socketInstance.emit('setup', String(user._id));
     });
 
-    socketInstance.on('online_users', (usersList) => {
-      setOnlineUsers(new Set(usersList));
-    });
+    const handleOnlineUsersList = (usersList) => {
+      if (Array.isArray(usersList)) {
+        setOnlineUsers(new Set(usersList.map((id) => String(id))));
+      }
+    };
+
+    socketInstance.on('online_users', handleOnlineUsersList);
+    socketInstance.on('get_online_users', handleOnlineUsersList);
 
     socketInstance.on('user_connected', (userId) => {
-      setOnlineUsers((prev) => new Set([...prev, userId]));
+      if (userId) {
+        setOnlineUsers((prev) => new Set([...prev, String(userId)]));
+      }
     });
 
     socketInstance.on('user_disconnected', (userId) => {
-      setOnlineUsers((prev) => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
+      if (userId) {
+        setOnlineUsers((prev) => {
+          const next = new Set(prev);
+          next.delete(String(userId));
+          return next;
+        });
+      }
     });
 
     setSocket(socketInstance);
@@ -56,30 +65,33 @@ export const SocketProvider = ({ children }) => {
 
   const joinRoom = useCallback((conversationId) => {
     if (socket && conversationId) {
+      socket.emit('join_conversation', conversationId);
       socket.emit('join_room', conversationId);
     }
   }, [socket]);
 
-  const emitTyping = useCallback((conversationId) => {
+  const emitTyping = useCallback((conversationId, receiverId) => {
     if (socket && conversationId) {
-      socket.emit('typing', conversationId);
+      socket.emit('typing', { conversationId, receiverId });
     }
   }, [socket]);
 
-  const emitStopTyping = useCallback((conversationId) => {
+  const emitStopTyping = useCallback((conversationId, receiverId) => {
     if (socket && conversationId) {
-      socket.emit('stop_typing', conversationId);
+      socket.emit('stop_typing', { conversationId, receiverId });
     }
   }, [socket]);
 
-  const emitMarkRead = useCallback((conversationId) => {
+  const emitMarkRead = useCallback((conversationId, senderId) => {
     if (socket && conversationId) {
-      socket.emit('mark_read', conversationId);
+      socket.emit('mark_read', { conversationId, senderId });
     }
   }, [socket]);
 
   const isUserOnline = useCallback((userId) => {
-    return onlineUsers.has(userId);
+    if (!userId) return false;
+    const strId = typeof userId === 'object' ? String(userId._id || userId) : String(userId);
+    return onlineUsers.has(strId);
   }, [onlineUsers]);
 
   const value = {

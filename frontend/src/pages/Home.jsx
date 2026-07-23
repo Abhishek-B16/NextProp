@@ -148,9 +148,9 @@ export default function Home() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="max-w-4xl mx-auto space-y-6 relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-semibold animate-pulse">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-semibold">
             <Sparkles className="w-4 h-4 text-brand-400" />
-            <span>Discover Production-Ready Residential & Commercial Rentals</span>
+            <span>Direct Owner Real Estate Marketplace</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-100 leading-[1.15]">
@@ -318,7 +318,7 @@ export default function Home() {
       <section className="glass-panel p-8 sm:p-12 rounded-3xl border border-slate-800/80 space-y-8">
         <div className="text-center max-w-xl mx-auto">
           <span className="text-xs font-bold text-brand-400 uppercase tracking-widest">Simple & Transparent</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">How Nestora Works</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1">How NextProp Works</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

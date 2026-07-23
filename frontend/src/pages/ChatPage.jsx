@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   MessageSquare,
   Send,
@@ -17,13 +17,15 @@ import { useSocket } from '../context/SocketContext';
 import {
   getConversationsApi,
   getMessagesApi,
-  sendMessageApi
+  sendMessageApi,
+  createOrGetConversationApi
 } from '../services/chatService';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 export default function ChatPage() {
   const { id: paramConversationId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const {
     socket,
@@ -56,18 +58,32 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages, isPartnerTyping]);
 
-  // Fetch Conversations List
+  // Fetch Conversations List and handle target receiver if passed in state
   const fetchConversations = useCallback(async () => {
     setLoadingConversations(true);
     try {
+      // 1. If receiverId passed via navigation state, create/get conversation first
+      let targetConvId = paramConversationId;
+      if (location.state?.receiverId) {
+        const directConv = await createOrGetConversationApi(location.state.receiverId);
+        if (directConv && directConv.data) {
+          targetConvId = directConv.data._id;
+        }
+      }
+
+      // 2. Fetch all user conversations
       const data = await getConversationsApi();
       if (data && data.data) {
         setConversations(data.data);
 
-        // Select initial conversation if param passed or first item
-        if (paramConversationId) {
-          const match = data.data.find((c) => c._id === paramConversationId);
-          if (match) setActiveConversation(match);
+        // Select initial conversation if match found, target set, or fallback to first
+        if (targetConvId) {
+          const match = data.data.find((c) => c._id === targetConvId);
+          if (match) {
+            setActiveConversation(match);
+          } else if (data.data.length > 0) {
+            setActiveConversation(data.data[0]);
+          }
         } else if (data.data.length > 0) {
           setActiveConversation(data.data[0]);
         }
@@ -77,7 +93,7 @@ export default function ChatPage() {
     } finally {
       setLoadingConversations(false);
     }
-  }, [paramConversationId]);
+  }, [paramConversationId, location.state]);
 
   useEffect(() => {
     fetchConversations();
@@ -207,7 +223,14 @@ export default function ChatPage() {
 
   // Helper to extract partner info
   const getPartner = (conv) => {
-    return conv.participants?.find((p) => p._id !== user._id) || { name: 'User' };
+    if (!conv || !conv.participants) return { name: 'User' };
+    const currentUserId = String(user?._id || '');
+    const partner = conv.participants.find((p) => {
+      const pId = typeof p === 'string' ? p : String(p._id || p.id || '');
+      return pId !== currentUserId;
+    });
+    if (!partner) return { name: 'User' };
+    return typeof partner === 'string' ? { _id: partner, name: 'User' } : partner;
   };
 
   const filteredConversations = conversations.filter((c) => {

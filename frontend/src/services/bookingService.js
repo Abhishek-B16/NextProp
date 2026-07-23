@@ -6,12 +6,12 @@ export const createBookingApi = async (bookingData) => {
 };
 
 export const getMyBookingsApi = async (params = {}) => {
-  const response = await api.get('/bookings', { params });
+  const response = await api.get('/bookings', { params: { role: 'customer', ...params } });
   return response.data;
 };
 
 export const getOwnerBookingsApi = async (params = {}) => {
-  const response = await api.get('/bookings/owner', { params });
+  const response = await api.get('/bookings', { params: { role: 'owner', ...params } });
   return response.data;
 };
 
@@ -21,6 +21,6 @@ export const updateBookingStatusApi = async (bookingId, status) => {
 };
 
 export const cancelBookingApi = async (bookingId) => {
-  const response = await api.delete(`/bookings/${bookingId}`);
+  const response = await api.put(`/bookings/${bookingId}/status`, { status: 'cancelled' });
   return response.data;
 };
